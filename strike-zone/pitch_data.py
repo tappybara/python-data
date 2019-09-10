@@ -2,6 +2,7 @@ import requests
 
 from bs4 import BeautifulSoup
 from datetime import datetime
+from pitches import Pitches
 
 class PitchData:
 
@@ -43,11 +44,16 @@ class PitchData:
         table = soup.find_all('tr')[1:]
         
         x_values, y_values = [], []
+        pitch_type, pitch_velo, pitch_result = [], [], []
+
+        pitch = Pitches()
 
         for row in table:
             data = row.find_all('td')
             px = data[-6].text
             pz = data[-5].text
+            pt = pitch.get_pitch(data[15].text)
+            pv = data[-7].text
 
             x_values.append(px)
             y_values.append(pz)
