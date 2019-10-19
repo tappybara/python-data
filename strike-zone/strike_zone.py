@@ -1,12 +1,14 @@
 import sys
+from itertools import chain
 from PyInquirer import prompt
 from datetime import datetime
-from plotly.graph_objs import Layout
+import plotly.graph_objects as go
 from plotly import offline
 
 from csv_parser import CSVParser
 from previous_starts import PrevStarts
 from pitch_data import PitchData
+import pitch_glossary as pg
 
 
 class StrikeZone:
@@ -17,13 +19,15 @@ class StrikeZone:
         self.player_name = None
         self.player_team = None
         self.player_dict = {}
+        self.team_dict = {}
         self.year = 2019
         self.filename = 'data/player_ids.csv'
+        
 
     def main(self):
 
-        parser = CSVParser(self.filename)
-        self.player_dict = parser.csv_to_dict()
+        playerParser = CSVParser(self.filename)
+        self.player_dict = playerParser.csv_to_playerDict()
         
         while self.player_name == None:
             player_name = input("Please enter the pitcher's first and last name or enter q to quit.\n")
@@ -59,16 +63,79 @@ class StrikeZone:
 
         pd = PitchData(self.player_id_mlb, selected_start, self.player_team, vs_team)
         
-        x_values, y_values = pd.get_pitch_data()
+        pitches, ptypes, results = pd.get_pitch_data()
+        pGlossary = pg.PitchGlossary()
+        rGlossary = pg.ResultGlossary()
 
-        data = [{
-            'type': 'scatter',
-            'x': x_values,
-            'y': y_values,
-            'mode': 'markers',
-        }]
+        fig = go.Figure()
 
-        my_layout = Layout(
+        for ptype in ptypes:
+            # All pitches
+            pitchList = [p for pitch in list(pitches.values()) for p in pitch if p['pt'] == ptype]
+            color = pGlossary.colourMap(ptype)
+            name = pGlossary.get_pitch(ptype)
+            fig.add_trace(
+                go.Scatter(
+                    x = [p['px'] for p in pitchList],
+                    y = [p['pz'] for p in pitchList],
+                    marker_color=color,
+                    name=name,
+                    visible=True,
+                    mode="markers",
+                    hovertemplate= '%{text}<extra></extra>',
+                    text = [f"Pitch Type: {name} <br>Velocity: {p['pv']}"
+                        for p in pitchList],
+                )
+            )
+
+        for result in results:
+            pitchList = [p[-1] for p in list(pitches.values()) if p[-1]['result'] == result]
+            fig.add_trace(
+                go.Scatter(
+                    x = [p['px'] for p in pitchList],
+                    y = [p['pz'] for p in pitchList],
+                    marker_color=[rGlossary.colourMap(p['result']) for p in pitchList],
+                    name=result,
+                    visible=False,
+                    mode="markers",
+                    hovertemplate= '%{text}<extra></extra>',
+                    text = [f"Pitch Type: {pGlossary.get_pitch(p['pt'])}<br>{p['result']} <br>Velocity: {p['pv']}" 
+                        for p in pitchList],
+                )
+            )
+
+        boolArray = [True for i in range(len(ptypes))]
+        boolArray.extend([False for j in range(len(results))])
+        notBoolArray = [not b for b in boolArray]
+
+        fig.update_layout(
+            updatemenus=[
+                go.layout.Updatemenu(
+                    type="buttons",
+                    direction="right",
+                    active=0,
+                    x=0.57,
+                    y=1.2,
+                    buttons=list([
+                        dict(
+                            label="All Pitches",
+                            method="update",
+                            args=
+                            [
+                                {"visible": boolArray}
+                            ]
+                        ),
+                        dict(
+                            label="Final Pitches",
+                            method="update",
+                            args=
+                            [
+                                {"visible": notBoolArray}
+                            ]
+                        )
+                    ])
+                )
+            ],
             title = 'Strike Zone',
             xaxis = {
                 'range': [-3, 3],
@@ -88,11 +155,10 @@ class StrikeZone:
                     'color': 'RoyalBlue',
                 },
             }],
-            width = 775,
-            height = 700,
+            width = 800,
+            height = 700
         )
 
-        fig = {'data': data, 'layout': my_layout}
         offline.plot(fig, filename=f'{selected_start}_{self.player_name}.html')
 
 if __name__ == '__main__':

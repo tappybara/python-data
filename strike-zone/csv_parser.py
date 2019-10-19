@@ -4,7 +4,7 @@ class CSVParser:
     def __init__(self, filename):
         self.filename = filename
 
-    def csv_to_dict(self):
+    def csv_to_playerDict(self):
         player_db = {}
         with open(self.filename) as f:
             reader = csv.reader(f)
@@ -18,5 +18,19 @@ class CSVParser:
                 player_db[player_name] = [player_id_mlb, player_id_espn, player_team]
 
         return player_db
+
+    def csv_to_teamDict(self):
+        team_db = {}
+        with open(self.filename) as f:
+            reader = csv.reader(f)
+            header_row = next(reader)
+
+            for row in reader:
+                team_abbr_yahoo = str(row[4])
+                team_abbr_bp = str(row[9])
+                team_db[team_abbr_yahoo] = [team_abbr_yahoo, team_abbr_bp]
+
+        return team_db
+
 
 
