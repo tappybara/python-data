@@ -1,0 +1,27 @@
+.card {
+    width: 250px;
+    height: 65px;
+    font-family: Arial, Helvetica, sans-serif;
+    border: 1px solid red;
+    display: flex;
+    flex-direction: row;
+    padding:5px;
+    align-items: center;
+}
+
+.card-image {
+    border: 1px solid red;
+    flex-grow: 1;
+    object-fit: contain;
+    max-width: 40px;
+    margin-right: 5px;
+}
+
+.card-name {
+    border: 1px solid rgb(21, 87, 26);
+    flex-grow: 3;
+    margin:0;
+    text-align: center;
+    height: fit-content;
+    
+}
