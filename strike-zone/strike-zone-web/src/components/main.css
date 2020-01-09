@@ -23,5 +23,8 @@
     margin:0;
     text-align: center;
     height: fit-content;
-    
+}
+
+.division-head {
+    text-align: center;
 }

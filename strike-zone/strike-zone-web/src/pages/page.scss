@@ -1,0 +1,25 @@
+.home {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+}
+
+.home-division {
+    display: flex;
+    flex-direction: row;
+}
+
+.division {
+    flex-grow: 1;
+    margin: 10px;
+}
+
+.pitchers {
+    display:flex;
+    flex-direction: rows;
+}
+
+.pitchers-col {
+    display: flex;
+    flex-direction: column;
+}
